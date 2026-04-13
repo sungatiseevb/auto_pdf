@@ -208,6 +208,18 @@ def _extract_after_label(lines: list, pattern: str) -> str:
 #     cleaned = re.sub(r'^[^a-zA-Z0-9]+', '', text)
 #     return cleaned.strip()
 
+def _clean_name_noise(text: str) -> str:
+    """Очищает строку от типичного мусора OCR, сохраняя валидный текст."""
+    if not text:
+        return ""
+    # Заменяем _, {, }, [, ], |, и обратные слеши на пробелы
+    cleaned = re.sub(r'[_{}\[\]|\\]', ' ', text)
+    # Схлопываем множественные пробелы в один
+    cleaned = re.sub(r'\s+', ' ', cleaned)
+    # Удаляем не-буквенно-цифровые символы в самом начале и конце строки
+    cleaned = re.sub(r'^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$', '', cleaned)
+    return cleaned.strip()
+
 def _extract_business_name(lines: list, text: str) -> str:
     for i, line in enumerate(lines):
         # Anchor for Line 2
@@ -217,6 +229,7 @@ def _extract_business_name(lines: list, text: str) -> str:
                 parts = re.split(r"above\.?", line, flags=re.IGNORECASE)
                 if len(parts) > 1:
                     candidate = clean_text(parts[1])
+                    candidate = _clean_name_noise(candidate) # Применяем очистку
                     if len(candidate) > 2:
                         return candidate
             
@@ -224,20 +237,11 @@ def _extract_business_name(lines: list, text: str) -> str:
             for j in range(i + 1, i + 3):
                 if j < len(lines):
                     candidate = clean_text(lines[j])
+                    candidate = _clean_name_noise(candidate) # Применяем очистку
                     # Ensure it's not the start of Line 3
                     if candidate and not re.search(r"^(3a|Check|3b)", candidate, re.IGNORECASE):
                         if len(candidate) > 2:
                             return candidate
-    return ""
-
-    m = re.search(
-        r"Business\s+name.*?different\s+from\s+above\.?\s*\n+(.*?)(?:\n|3[ab]?\s)",
-        text, re.IGNORECASE | re.DOTALL
-    )
-    if m:
-        c = m.group(1).strip()
-        if 2 < len(c) < 100 and not re.search(r"(Check|Enter|See )", c):
-            return c
     return ""
 
 def _detect_classification(text: str, name: str = "") -> str:
