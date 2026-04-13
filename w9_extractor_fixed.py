@@ -75,8 +75,11 @@ def clean_text(value) -> str:
             value = value.decode("utf-8")
         except UnicodeDecodeError:
             value = value.decode("latin-1", errors="replace")
-    return unicodedata.normalize("NFKC", str(value).strip())
+    
+    text = str(value)
 
+    text = re.sub(r'[_{}\[\]|]', ' ', text) 
+    return unicodedata.normalize("NFKC", text.strip())
 
 def is_pdf_scanned(pdf_path: str) -> bool:
     try:
@@ -148,7 +151,6 @@ def extract_acroform(pdf_path: str) -> dict:
 
 
 def _parse_w9_text(text: str, pdf_path: str) -> dict:
-    text = clean_text(text)
     record = {col: "" for col in OUTPUT_COLUMNS}
     record["source_file"] = Path(pdf_path).name
     lines = [l.strip() for l in text.splitlines() if l.strip()]
@@ -245,52 +247,190 @@ def _extract_business_name(lines: list, text: str) -> str:
     return ""
 
 def _detect_classification(text: str, name: str = "") -> str:
+    text = (text or "").lower()
     name = (name or "").lower()
 
-    # LLC
+    # Explicit classification labels found on the form are highest priority.
+    if re.search(r'\bc\s*(corporat\w*|corp|corp\.)\b', text):
+        return "C Corporation"
+    if re.search(r'\bs\s*(corporat\w*|corp|corp\.)\b', text):
+        return "S Corporation"
+    if re.search(r'\bpartnership\b', text):
+        return "Partnership"
+    if re.search(r'\btrust/?estate\b', text):
+        return "Trust/Estate"
+    if re.search(r'\bother\b', text):
+        return "Other"
+    if re.search(r'\bindividual/sole proprietor\b|\bsole proprietor\b|\bindividual\b', text):
+        return "Individual/Sole Proprietor"
+    if re.search(r'\bllc\b', text):
+        # If the form also contains a more specific corporate selection, honor that instead.
+        if re.search(r'\bc\s*(corporation|orp|orp\.)\b', text):
+            return "C Corporation"
+        if re.search(r'\bs\s*(corporation|orp|orp\.)\b', text):
+            return "S Corporation"
+        if re.search(r'\bpartnership\b', text):
+            return "Partnership"
+        return "LLC"
+
+    if any(x in name for x in ["inc", "corp", "corporation"]):
+        return "C Corporation"
+    if any(x in name for x in ["llp", "partnership"]):
+        return "Partnership"
     if "llc" in name:
         return "LLC"
 
-    # Corporations
-    if any(x in name for x in ["inc", "corp", "corporation"]):
-        return "C Corporation"
-
-    # Partnership
-    if any(x in name for x in ["llp", "partnership"]):
-        return "Partnership"
-
-    # Default fallback
     return "Individual/Sole Proprietor"
 
 
-def _extract_ssn(text: str) -> str:
-    # Standard format: 111-22-3333
-    m = re.search(r"\b(\d{3})\s*[-]\s*(\d{2})\s*[-]\s*(\d{4})\b", text)
-    if m:
-        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+def _extract_ssn_from_image(img) -> str:
+    try:
+        import cv2
+        import pytesseract
+        import numpy as np
+    except ImportError:
+        return ""
 
-    # OCR spaced digits: "1 1 1 - 4 5 - 9 6 6 6" or single-box OCR
-    ssn_area = re.search(r"Social\s*.?security\s*number(.*?)(?:or\s+Employer|Employer\s+ident)", text, re.IGNORECASE | re.DOTALL)
-    if ssn_area:
-        raw = ssn_area.group(1)
-        digits = re.sub(r"[^\d]", "", raw)
-        if len(digits) == 9:
-            d = digits
-            return f"{d[:3]}-{d[3:5]}-{d[5:]}"
+    h, w = img.shape[:2]
+    candidate_regions = [
+        (int(w * 0.60), int(h * 0.42), min(w, int(w * 0.98)), int(h * 0.52)),
+        (int(w * 0.62), int(h * 0.40), min(w, int(w * 0.98)), int(h * 0.55)),
+        (int(w * 0.58), int(h * 0.38), min(w, int(w * 0.98)), int(h * 0.56)),
+    ]
 
+    for x0, y0, x1, y1 in candidate_regions:
+        crop = img[y0:y1, x0:x1]
+        if crop.size == 0:
+            continue
+        gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY)
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        proc = cv2.bitwise_not(thresh)
+        proc = cv2.resize(proc, (proc.shape[1] * 3, proc.shape[0] * 3), interpolation=cv2.INTER_CUBIC)
+        text = pytesseract.image_to_string(proc, config='--oem 3 --psm 6 -c tessedit_char_whitelist="0123456789- "')
+        match = re.search(r'(\d{3})\D*(\d{2})\D*(\d{4})', text)
+        if match:
+            return f"{match.group(1)}-{match.group(2)}-{match.group(3)}"
     return ""
 
 
+def _extract_ein_from_image(img) -> str:
+    try:
+        import cv2
+        import pytesseract
+        import numpy as np
+    except ImportError:
+        return ""
+
+    h, w = img.shape[:2]
+    candidate_regions = [
+        (int(w * 0.60), int(h * 0.50), min(w, int(w * 0.98)), int(h * 0.60)),
+        (int(w * 0.58), int(h * 0.48), min(w, int(w * 0.98)), int(h * 0.62)),
+    ]
+
+    for x0, y0, x1, y1 in candidate_regions:
+        crop = img[y0:y1, x0:x1]
+        if crop.size == 0:
+            continue
+        gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY)
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        proc = cv2.bitwise_not(thresh)
+        proc = cv2.resize(proc, (proc.shape[1] * 3, proc.shape[0] * 3), interpolation=cv2.INTER_CUBIC)
+        text = pytesseract.image_to_string(proc, config='--oem 3 --psm 6 -c tessedit_char_whitelist="0123456789- "')
+        match = re.search(r'(\d{2})\D*(\d{7})', text)
+        if match:
+            return f"{match.group(1)}-{match.group(2)}"
+    return ""
+
+
+def _extract_ssn(text: str) -> str:
+    """Extract SSN in various formats (XXX-XX-XXXX, XXX XX XXXX, XXXXXXXXX, etc)."""
+    if not text:
+        return ""
+    
+    # Clean OCR noise but keep structure
+    clean_text = re.sub(r'[_{}\[\]|\\]', ' ', text)
+    
+    # Pattern 1: Standard format (XXX-XX-XXXX or XXX XX XXXX or with dots)
+    m = re.search(r'\b(\d{3})\s*[-.\s]\s*(\d{2})\s*[-.\s]\s*(\d{4})\b', clean_text)
+    if m:
+        result = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+        logger.info(f"SSN found via Pattern 1: {result}")
+        return result
+    
+    # Pattern 2: Look for various SSN labels and capture digits after
+    m_label = re.search(
+        r"social\s+security\s+number[:\s]*([\d\s\-\.\|]{9,40})",
+        clean_text,
+        re.IGNORECASE,
+    )
+    if m_label:
+        digits = re.sub(r"[^\d]", "", m_label.group(1))
+        if len(digits) >= 9:
+            result = f"{digits[:3]}-{digits[3:5]}-{digits[5:9]}"
+            logger.info(f"SSN found via Pattern 2 (label): {result}")
+            return result
+
+    # Pattern 2b: Look for the shorter label 'SSN' as a fallback
+    m_ssn_label = re.search(r"\bSSN\b[:\s]*([\d\s\-\.]{9,30})", clean_text, re.IGNORECASE)
+    if m_ssn_label:
+        digits = re.sub(r"[^\d]", "", m_ssn_label.group(1))
+        if len(digits) >= 9:
+            result = f"{digits[:3]}-{digits[3:5]}-{digits[5:9]}"
+            logger.info(f"SSN found via Pattern 2b (SSN): {result}")
+            return result
+    
+    # Pattern 3: Look for 9 consecutive digits (with minimal separators)
+    for m in re.finditer(r'(\d{3})\s*[-.\s]*(\d{2})\s*[-.\s]*(\d{4})', clean_text):
+        area, group, serial = m.group(1), m.group(2), m.group(3)
+        # Skip invalid SSNs: area 000, 666, or 900-999
+        if area not in ['000', '666'] and not (900 <= int(area) <= 999):
+            result = f"{area}-{group}-{serial}"
+            logger.info(f"SSN found via Pattern 3: {result}")
+            return result
+    
+    # Pattern 4: Fall back to any 9-digit sequence
+    m_fallback = re.search(r'\b(\d{9})\b', clean_text)
+    if m_fallback:
+        digits = m_fallback.group(1)
+        result = f"{digits[:3]}-{digits[3:5]}-{digits[5:9]}"
+        logger.info(f"SSN found via Pattern 4 (fallback): {result}")
+        return result
+    
+    # Log OCR extraction findings for debugging
+    logger.info(f"No SSN found. Text sample: {clean_text[:200]}")
+    
+    return ""
+
 def _extract_ein(text: str) -> str:
-    m = re.search(r"\b(\d{2})\s*[-\s]\s*(\d{7})\b", text)
+    """Extract EIN in various formats (XX-XXXXXXX, XX XXXXXXX, XXXXXXXXX, etc)."""
+    if not text:
+        return ""
+    
+    # Clean OCR noise but keep structure
+    clean_text = re.sub(r'[_{}\[\]|\\]', ' ', text)
+    
+    # Pattern 1: Standard format (XX-XXXXXXX or XX XXXXXXX or with dots)
+    m = re.search(r'\b(\d{2})\s*[-.\s]\s*(\d{7})\b', clean_text)
     if m:
         return f"{m.group(1)}-{m.group(2)}"
-
-    e = re.search(r"Employer\s+identification\s+number.*?(\d[\d\s\-]{6,12}\d)", text, re.IGNORECASE | re.DOTALL)
-    if e:
-        digits = re.sub(r"[^\d]", "", e.group(1))
-        if len(digits) == 9:
-            return f"{digits[:2]}-{digits[2:]}"
+    
+    # Pattern 2: Look for "Employer Identification Number" label and capture digits after
+    m_label = re.search(r"Employer\s+Identification\s+Number[:\s]+([\d\s\-\.]{7,20})", clean_text, re.IGNORECASE)
+    if m_label:
+        digits = re.sub(r"[^\d]", "", m_label.group(1))
+        if len(digits) >= 9:
+            return f"{digits[:2]}-{digits[2:9]}"
+    
+    # Pattern 3: Look for 9 consecutive digits
+    for m in re.finditer(r'(\d{2})\s*[-.\s]*(\d{7})', clean_text):
+        return f"{m.group(1)}-{m.group(2)}"
+    
+    # Pattern 4: Fall back to any 9-digit sequence for EIN
+    m_fallback = re.search(r'\b(\d{9})\b', clean_text)
+    if m_fallback:
+        digits = m_fallback.group(1)
+        return f"{digits[:2]}-{digits[2:9]}"
+    
     return ""
 
 
@@ -325,105 +465,41 @@ def extract_scanned_ocr(pdf_path: str) -> dict:
         return record
 
     try:
-        images = convert_from_path(pdf_path, dpi=200)
+        images = convert_from_path(pdf_path, dpi=200, first_page=1, last_page=1)
         img = np.array(images[0])
         IMG_W, IMG_H = images[0].size
         SCALE = 200 / 72.0
 
-        # OCR only top 75% of page — all W-9 data fields sit there,
-        # cutting the signature/instruction block halves OCR time.
+        logger.info("OCR processing only first page")
         h_px = img.shape[0]
         top_img = img[:int(h_px * 0.75), :]
         full_text = pytesseract.image_to_string(top_img, config="--oem 3 --psm 6")
         record = _parse_w9_text(full_text, pdf_path)
 
-        # --- Date: targeted crop of the Sign Here / Date row ---
-        # The Date row sits at ~70-78% page height; crop right column for the value.
-        date_strip = img[int(h_px * 0.695): int(h_px * 0.755), int(IMG_W * 0.55):]
+        # fill missing OCR-only fields from the image region if the parsed text did not include them
+        if not record.get("ssn"):
+            ssn_found = _extract_ssn_from_image(img)
+            if ssn_found:
+                record["ssn"] = ssn_found
+        if not record.get("ein"):
+            ein_found = _extract_ein_from_image(img)
+            if ein_found:
+                record["ein"] = ein_found
+
+        # --- Date: crop the signature section at bottom right ---
+        # Look in the bottom 20% of the page, right half for date patterns
+        date_strip = img[int(h_px * 0.8):, int(IMG_W * 0.5):]
         if date_strip.size > 0:
             dg = cv2.cvtColor(date_strip, cv2.COLOR_RGB2GRAY)
             _, dp = cv2.threshold(dg, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-            dp = cv2.resize(dp, (dp.shape[1]*3, dp.shape[0]*3), interpolation=cv2.INTER_CUBIC)
-            date_raw = pytesseract.image_to_string(dp, config="--oem 3 --psm 7").strip()
+            dp = cv2.resize(dp, (dp.shape[1]*4, dp.shape[0]*4), interpolation=cv2.INTER_CUBIC)
+            date_raw = pytesseract.image_to_string(dp, config="--oem 3 --psm 6").strip()
             import re as _re
             dm = _re.search(r"(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})", date_raw)
             if dm:
                 record["date"] = dm.group(1)
 
-        # --- Targeted crop OCR for SSN and EIN ---
-        # The digit cells are small and need isolated crop + whitelist for accuracy.
-        # Anchor the search using the "Name of entity" label position.
-        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        d = cv2.fastNlMeansDenoising(gray, h=10)
-        thresh = cv2.adaptiveThreshold(d, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-
-        # Import anchor finder from original extractor if available
-        try:
-            from w9_extractor import _find_form_anchor, _get_page_height_pt, _correct_ssn, _correct_ein
-            pt_h = _get_page_height_pt(pdf_path)
-            anchor = _find_form_anchor(thresh, SCALE, pt_h)
-        except Exception:
-            anchor = float(images[0].size[1]) / SCALE * 0.125  # fallback: 12.5% of page
-
-        def crop_ocr_digits(x0, y_off, x1, h, wl):
-            y0_pt = anchor + y_off
-            px0 = max(0, int(x0 * SCALE)); py0 = max(0, int(y0_pt * SCALE))
-            px1 = min(IMG_W, int(x1 * SCALE)); py1 = min(IMG_H, int((y0_pt + h) * SCALE))
-            crop = img[py0:py1, px0:px1]
-            if crop.size == 0:
-                return ""
-            g = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY)
-            _, proc = cv2.threshold(g, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-            proc = cv2.resize(proc, (proc.shape[1] * 4, proc.shape[0] * 4), interpolation=cv2.INTER_CUBIC)
-            return pytesseract.image_to_string(
-                proc, config=f'--oem 3 --psm 6 -c tessedit_char_whitelist="{wl}"'
-            ).strip()
-
-        # Targeted crop for SSN/EIN using absolute page y-coordinates.
-        # Measured on real scans: SSN cells at abs ~385-435pt, EIN at ~420-455pt.
-        # Scanning absolute coords (not anchor-relative) keeps the loop small (11 steps).
-        def crop_ocr_abs(x0, y_abs, x1, h, wl):
-            px0 = max(0, int(x0 * SCALE)); py0 = max(0, int(y_abs * SCALE))
-            px1 = min(IMG_W, int(x1 * SCALE)); py1 = min(IMG_H, int((y_abs + h) * SCALE))
-            crop = img[py0:py1, px0:px1]
-            if crop.size == 0:
-                return ""
-            g = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY)
-            _, proc = cv2.threshold(g, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-            proc = cv2.resize(proc, (proc.shape[1] * 4, proc.shape[0] * 4), interpolation=cv2.INTER_CUBIC)
-            return pytesseract.image_to_string(
-                proc, config=f'--oem 3 --psm 6 -c tessedit_char_whitelist="{wl}"'
-            ).strip()
-
-        ssn_val = record.get("ssn", "")
-        if not ssn_val:
-            for y_abs in range(385, 440, 5):
-                raw = crop_ocr_abs(410, y_abs, 575, 20, "0123456789- ")
-                digits = re.sub(r"[^\d]", "", raw)
-                if len(digits) == 9:
-                    try:
-                        ssn_val = _correct_ssn(raw)
-                    except Exception:
-                        ssn_val = f"{digits[:3]}-{digits[3:5]}-{digits[5:]}"
-                    if ssn_val:
-                        break
-            record["ssn"] = ssn_val
-
-        ein_val = record.get("ein", "")
-        if not ein_val:
-            for y_abs in range(420, 460, 5):
-                raw = crop_ocr_abs(410, y_abs, 575, 20, "0123456789-")
-                digits = re.sub(r"[^\d]", "", raw)
-                if len(digits) == 9:
-                    try:
-                        ein_val = _correct_ein(raw)
-                    except Exception:
-                        ein_val = f"{digits[:2]}-{digits[2:]}"
-                    if ein_val:
-                        break
-            record["ein"] = ein_val
-
-        record["extraction_method"] = "OCR"
+        record['extraction_method'] = 'OCR'
     except Exception as e:
         logger.error(f"OCR failed: {e}")
         record["extraction_notes"] = str(e)
@@ -433,7 +509,8 @@ def extract_scanned_ocr(pdf_path: str) -> dict:
 
 def extract_text_based(pdf_path: str) -> dict:
     with pdfplumber.open(pdf_path) as pdf:
-        text = "".join((p.extract_text(layout=True) or "") + "\n" for p in pdf.pages[:2])
+        page = pdf.pages[0]
+        text = page.extract_text(layout=True) or ""
     record = _parse_w9_text(text, pdf_path)
     record["extraction_method"] = "TextPDF"
     return record

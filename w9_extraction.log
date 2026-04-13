@@ -178,3 +178,247 @@
 2026-04-13 21:16:44,640 [INFO] Processing: w9 Form 3 3-17-2026.pdf
 2026-04-13 21:16:44,753 [INFO] w9 Form 3 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=john Phat Inc | ssn= | ein=10-3445678
 2026-04-13 21:16:44,790 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 21:19:20,892 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 21:19:46,686 [INFO] Document_2026-04-07_095423.pdf | method=OCR | status=SUCCESS | name=Palitree Inc LLC | ssn= | ein=
+2026-04-13 21:19:46,690 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 21:20:10,324 [INFO] Document_2026-04-07_100045.pdf | method=OCR | status=SUCCESS | name=Samuel Jines INC | ssn= | ein=
+2026-04-13 21:20:10,327 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 21:20:35,849 [INFO] Ralpha THat LLC_Testpdf1.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:20:35,851 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:21:05,043 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:21:05,045 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 21:21:05,161 [INFO] w9 Form 1 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=Lateell Parctor Inc | ssn=143-33-7875 | ein=45-3445678
+2026-04-13 21:21:05,161 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 21:21:05,276 [INFO] w9 Form 3 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=john Phat Inc | ssn= | ein=10-3445678
+2026-04-13 21:21:05,312 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 21:26:41,422 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 21:27:07,375 [INFO] Document_2026-04-07_095423.pdf | method=OCR | status=SUCCESS | name=Palitree Inc LLC | ssn= | ein=
+2026-04-13 21:27:07,378 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 21:27:30,798 [INFO] Document_2026-04-07_100045.pdf | method=OCR | status=SUCCESS | name=Samuel Jines INC | ssn= | ein=
+2026-04-13 21:27:30,801 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 21:27:56,651 [INFO] Ralpha THat LLC_Testpdf1.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:27:56,654 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:28:25,526 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:28:25,528 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 21:28:25,642 [INFO] w9 Form 1 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=Lateell Parctor Inc | ssn=143-33-7875 | ein=45-3445678
+2026-04-13 21:28:25,643 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 21:28:25,756 [INFO] w9 Form 3 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=john Phat Inc | ssn= | ein=10-3445678
+2026-04-13 21:28:25,794 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 21:29:27,154 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 21:29:53,511 [INFO] Document_2026-04-07_095423.pdf | method=OCR | status=SUCCESS | name=Palitree Inc LLC | ssn= | ein=
+2026-04-13 21:29:53,514 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 21:30:17,364 [INFO] Document_2026-04-07_100045.pdf | method=OCR | status=SUCCESS | name=Samuel Jines INC | ssn= | ein=
+2026-04-13 21:30:17,366 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 21:30:44,061 [INFO] Ralpha THat LLC_Testpdf1.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:30:44,063 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:31:13,249 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:31:13,251 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 21:31:13,394 [INFO] w9 Form 1 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=Lateell Parctor Inc | ssn=143-33-7875 | ein=45-3445678
+2026-04-13 21:31:13,395 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 21:31:13,521 [INFO] w9 Form 3 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=john Phat Inc | ssn= | ein=10-3445678
+2026-04-13 21:31:13,571 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 21:36:28,398 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:36:57,269 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:36:57,324 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 21:40:18,954 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:40:49,134 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:40:49,160 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 21:41:39,758 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:42:06,953 [INFO] Testpdffinal.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 21:42:06,979 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 21:46:34,196 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:47:04,405 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:47:04,431 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 21:54:47,589 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 21:55:15,629 [INFO] Document_2026-04-07_095423.pdf | method=OCR | status=SUCCESS | name=Palitree Inc LLC | ssn= | ein=
+2026-04-13 21:55:15,629 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 21:55:43,036 [INFO] Document_2026-04-07_100045.pdf | method=OCR | status=SUCCESS | name=Samuel Jines INC | ssn= | ein=
+2026-04-13 21:55:43,038 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 21:57:23,002 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:57:41,102 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 21:57:50,765 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:57:50,793 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 21:59:00,769 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:59:18,685 [INFO] OCR Full Text (first 500 chars): com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . . \-
+Internal Revenue Sewiew Go to www.irs.gov/FormW9 for instructions and the latest information. send to the IRS
+Before you begin. For guidance related to the purpose of Form W-9, see Purpose of Form, below.
+1 Name of entity/individual. An entry is required. (For a sole proprietor or disregarded entity, enter the owner’s name on line 1, and e
+2026-04-13 21:59:18,688 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 21:59:28,296 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:59:28,320 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:00:59,398 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:01:17,843 [INFO] OCR Full Text (length=4316): com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . . \-
+Internal Revenue Sewiew Go to www.irs.gov/FormW9 for instructions and the latest information. send to the IRS
+Before you begin. For guidance related to the purpose of Form W-9, see Purpose of Form, below.
+1 Name of entity/individual. An entry is required. (For a sole proprietor or disregarded entity, enter the owner’s name on line 1, and enter the business/disregarded
+entity’s name on line 2.)
+Ralpha THat LLC
+2 Business name/disregarded entity name, if different from above.
+_ [That LLC
+9 3a Check the appropriate box for federal tax classification of the entity/individual whose name is entered on line 1. Check 4 Exemptions (codes apply only to
+> only one of the following seven boxes. certain entities, not individuals;
+fom tructi 3)
+5 oO Individual/sole proprietor C corporation Oo S corporation Oo Partnership oO Trust/estate see instructions on page 3)
+6% LJ Lic. Enter the tax classification (C = C corporation, S = S corporation, P= Partnership) . . . Exempt payee code (if any)
+a & Note: Check the “LLC” box above and, in the entry space, enter the appropriate code (C, S, or P) for the tax
+To classification of the LLC, unless it is a disregarded entity. A disregarded entity should instead check the appropriate Exemption from Foreign Account Tax
+° 2 box for the tax classification of its owner. Compliance Act (FATCA) reporting
+= gz oO Other (see instructions) code (if any)
+oo SSS TT
+§§ | 3b If on line 3a you checked “Partnership” or “Trust/estate,” or checked “LLC” and entered “P” as its tax classification, (Applies to accounts maintained
+8 and you are providing this form to a partnership, trust, or estate in which you have an ownership interest, check plies ur intal
+2 this box if you have any foreign partners, owners, or beneficiaries. See instructions . . . . . . . . . LI outside the United States.)
+7) y' y 9N Pi . .
+8 5 Address (number, street, and apt. or suite no.). See instructions. Requester’s name and address (optional)
+1221 Saint INC
+6 City, state, and ZIP code
+TEst, Houston 77077
+7 List account number(s) here (optional)
+Part Taxpayer Identification Number (TIN)
+Enter your TIN in the appropriate box. The TIN provided must match the name given on line 1 to avoid Social security number
+backup withholding. For individuals, this is generally your social security number (SSN). However, for a
+resident alien, sole proprietor, or disregarded entity, see the instructions for Part |, later. For other ~ ~
+entities, it is your employer identification number (EIN). If you do not have a number, see How to get a or
+TIN, later. 7 eT
+Employer identification number
+Note: If the account is in more than one name, see the instructions for line 1. See also What Name and
+Number To Give the Requester for guidelines on whose number to enter. -
+Certification
+Under penalties of perjury, | certify that:
+1. The number shown on this form is my correct taxpayer identification number (or | am waiting for a number to be issued to me); and
+2. 1am not subject to backup withholding because (a) | am exempt from backup withholding, or (b) | have not been notified by the Internal Revenue
+Service (IRS) that | am subject to backup withholding as a result of a failure to report all interest or dividends, or (c) the IRS has notified me that | am
+no longer subject to backup withholding; and
+3. lama U.S. citizen or other U.S. person (defined below); and
+4. The FATCA code(s) entered on this form (if any) indicating that | am exempt from FATCA reporting is correct.
+Certification instructions. You must cross out item 2 above if you have been notified by the IRS that you are currently subject to backup withholding
+because you have failed to report all interest and dividends on your tax return. For real estate transactions, item 2 does not apply. For mortgage interest paid,
+acquisition or abandonment of secured property, cancellation of debt, contributions to an individual retirement arrangement (IRA), and, generally, payments
+other than interest and dividends, you are not required to sign the certification, but you must provide your correct TIN. See the instructions for Part Il, later.
+Sign Signature of
+Uara The enpene Rese
+
+2026-04-13 22:01:17,850 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:01:27,646 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 22:01:27,671 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:02:16,193 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:02:34,942 [INFO] No 111 or 3333 found in OCR text (length=4316)
+2026-04-13 22:02:34,945 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:02:44,962 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 22:02:44,987 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:03:31,670 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:03:38,043 [INFO] PDF has 6 pages
+2026-04-13 22:04:35,838 [INFO] Page 2 contains digit patterns or SSN label
+2026-04-13 22:04:35,842 [INFO] Page 2 context: have changed your last name without informing the Social Security penalties that may apply.
+2026-04-13 22:04:54,709 [INFO] Page 3 contains digit patterns or SSN label
+2026-04-13 22:04:54,715 [INFO] Page 3 context: prior to 2012. If you are a sole proprietor and you have an EIN, you may enter either
+2026-04-13 22:04:54,715 [INFO] Page 3 context: * Barter exchange transactions Exempt payees 1 through 4. your SSN or EIN.
+2026-04-13 22:04:54,715 [INFO] Page 3 context: over $600 required to | Generally, exempt payees separate from its owner, enter the owner’s SSN (or EIN, if the owner has
+2026-04-13 22:04:54,716 [INFO] Page 3 context: 1 entity’s EIN.
+2026-04-13 22:04:54,716 [INFO] Page 3 context: 7 7 , 5 ar j To apply for an SSN, get Form SS-5, Application for a Social Security
+2026-04-13 22:04:54,717 [INFO] Page 3 context: ds paid to an attorney reportable under section 6045(f), and Identification Number, to apply for an EIN. You can apply for an EIN
+2026-04-13 22:04:54,718 [INFO] Page 3 context: for services paid by a federal executive agency. online by accessing the IRS website at www.irs.gov/EIN. Go to
+2026-04-13 22:05:17,756 [INFO] SSN not found in any page. Full text length: 38036
+2026-04-13 22:05:30,099 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:05:40,081 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 22:05:40,105 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:08:22,997 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:08:28,625 [INFO] OCR processing only first page
+2026-04-13 22:08:41,032 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:08:41,320 [INFO] Looking for SSN in image boxes (not text extraction)
+2026-04-13 22:08:55,376 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 22:08:55,401 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:10:48,412 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:10:54,010 [INFO] OCR processing only first page
+2026-04-13 22:11:06,206 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:11:06,510 [INFO] Looking for SSN in Part I area on first page
+2026-04-13 22:11:53,915 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 22:11:53,939 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:13:27,533 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:13:33,096 [INFO] OCR processing only first page
+2026-04-13 22:13:45,537 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:13:45,807 [INFO] Looking for SSN in Part I area on first page
+2026-04-13 22:14:34,399 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 22:14:34,423 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:17:56,608 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:18:02,310 [INFO] OCR processing only first page
+2026-04-13 22:18:15,223 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:18:15,530 [INFO] Looking for SSN in Part I / TIN area on first page
+2026-04-13 22:18:34,946 [INFO] Found SSN near label '(number,' at box (282,775,74,18): 242-12-2162
+2026-04-13 22:18:34,947 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn=242-12-2162 | ein=
+2026-04-13 22:18:34,971 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:21:01,974 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:21:07,292 [INFO] OCR processing only first page
+2026-04-13 22:21:21,390 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:21:21,672 [INFO] Looking for SSN in Part I / TIN area on first page
+2026-04-13 22:21:40,722 [INFO] Found SSN near label '(number,' at box (282,775,74,18): 242-12-2162
+2026-04-13 22:21:40,722 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn=242-12-2162 | ein=
+2026-04-13 22:21:40,747 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:27:09,242 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:27:14,715 [INFO] OCR processing only first page
+2026-04-13 22:27:26,903 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:27:27,186 [INFO] Looking for SSN in Part I / TIN area on first page
+2026-04-13 22:27:46,347 [INFO] Found SSN near label '(number,' at box (282,775,74,18): 242-12-2162
+2026-04-13 22:27:46,347 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn=242-12-2162 | ein=
+2026-04-13 22:27:46,371 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:56:39,882 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:56:45,304 [INFO] OCR processing only first page
+2026-04-13 22:56:58,520 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:57:03,897 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 22:57:03,921 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 22:58:15,170 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 22:58:20,893 [INFO] OCR processing only first page
+2026-04-13 22:58:32,702 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 22:58:37,623 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 22:58:37,647 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 23:00:24,648 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 23:00:30,237 [INFO] OCR processing only first page
+2026-04-13 23:00:43,177 [INFO] No SSN found. Text sample: com W=9 Request for Taxpayer Give form to the
+(Rev. March 2024) Identification Number and Certification requester. Do not
+Department of the Treas - : . . .  -
+Internal Revenue Sewiew Go to www.irs.gov
+2026-04-13 23:00:50,361 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 23:00:50,385 [INFO] Saved 1 records to w9-extractor.xlsx
