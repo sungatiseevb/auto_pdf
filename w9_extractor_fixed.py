@@ -148,6 +148,7 @@ def extract_acroform(pdf_path: str) -> dict:
 
 
 def _parse_w9_text(text: str, pdf_path: str) -> dict:
+    text = clean_text(text)
     record = {col: "" for col in OUTPUT_COLUMNS}
     record["source_file"] = Path(pdf_path).name
     lines = [l.strip() for l in text.splitlines() if l.strip()]
@@ -155,7 +156,7 @@ def _parse_w9_text(text: str, pdf_path: str) -> dict:
     # Name: line immediately after the "Name of entity" header line
     record["name"] = _extract_name(lines)
     record["business_name"] = _extract_business_name(lines, text)
-    record["tax_classification"] = _detect_classification(text)
+    record["tax_classification"] = _detect_classification(text, record["name"])
     record["address"] = _extract_after_label(lines, r"^5\s+Address|Address\s*\(number")
     record["city_state_zip"] = _extract_after_label(lines, r"^6\s+City|City,\s*state")
     record["ssn"] = _extract_ssn(text)
@@ -165,30 +166,25 @@ def _parse_w9_text(text: str, pdf_path: str) -> dict:
 
 
 def _extract_name(lines: list) -> str:
-    """Extract entity name from Line 1 of the W-9 form."""
+    # Strict list of headers to ignore
     SKIP = re.compile(
-        r"entity.s name on line|An entry is required|For a sole proprietor"
-        r"|disregarded entity|enter the owner|enter the business"
-        r"|Name\s+of\s+entity"
-        r"|^(Check|Enter|See|Note:|Before|Give form|Business name)",
+        r"Form W-9|Request for Taxpayer|Department of the Treasury|Internal Revenue Service"
+        r"|entity.?s name on|line 2|An entry is required|sole proprietor"
+        r"|Name\s+of\s+entity|1\s+Name|Go to www\.irs\.gov",
         re.IGNORECASE
     )
-    found_label = False
-    for line in lines:
-        if re.search(r"Name\s+of\s+entity", line, re.IGNORECASE):
-            found_label = True
-            # Don't continue yet — the name might be on the SAME line after label text
-            # (rare but possible in digital PDFs)
-        if found_label:
-            if SKIP.search(line):
-                continue
-            # Stop at next numbered field (line 2, 3a, etc.)
-            if re.match(r"^[2-9]\s+[A-Z]", line):
-                break
-            if len(line) > 2 and re.match(r"[A-Za-z]", line):
-                return line
-    return ""
 
+    for i, line in enumerate(lines):
+        line = line.strip()
+        # Look specifically for the "1 Name" anchor
+        if re.search(r"1\s*Name\s*of\s*entity", line, re.IGNORECASE):
+            # Check the following lines for the actual value
+            for j in range(i + 1, i + 3):
+                if j < len(lines):
+                    candidate = lines[j].strip()
+                    if candidate and not SKIP.search(candidate) and len(candidate) > 2:
+                        return candidate
+    return ""
 
 def _extract_after_label(lines: list, pattern: str) -> str:
     skip = [
@@ -205,17 +201,34 @@ def _extract_after_label(lines: list, pattern: str) -> str:
     return ""
 
 
+# def clean_text(text: str) -> str:
+#     if not text:
+#         return ""
+#     # Remove OCR noise like |, {, [, ], _, or dots at the start/end
+#     cleaned = re.sub(r'^[^a-zA-Z0-9]+', '', text)
+#     return cleaned.strip()
+
 def _extract_business_name(lines: list, text: str) -> str:
     for i, line in enumerate(lines):
-        if re.search(r"^2\s+Business\s+name|Business\s+name.*?entity\s+name", line, re.IGNORECASE):
-            for j in range(i + 1, min(i + 4, len(lines))):
-                c = lines[j]
-                if re.search(r"(different from above|disregarded entity|if different)", c, re.IGNORECASE):
-                    continue
-                if re.search(r"^(Check|Enter|See|Note:|3[ab]?|\d+\s+[A-Z])", c, re.IGNORECASE):
-                    break
-                if len(c) > 2:
-                    return c
+        # Anchor for Line 2
+        if re.search(r"2\s*Business\s*name", line, re.IGNORECASE):
+            # Check the same line first (after the label)
+            if "different from above" in line.lower():
+                parts = re.split(r"above\.?", line, flags=re.IGNORECASE)
+                if len(parts) > 1:
+                    candidate = clean_text(parts[1])
+                    if len(candidate) > 2:
+                        return candidate
+            
+            # Check the next 2 lines
+            for j in range(i + 1, i + 3):
+                if j < len(lines):
+                    candidate = clean_text(lines[j])
+                    # Ensure it's not the start of Line 3
+                    if candidate and not re.search(r"^(3a|Check|3b)", candidate, re.IGNORECASE):
+                        if len(candidate) > 2:
+                            return candidate
+    return ""
 
     m = re.search(
         r"Business\s+name.*?different\s+from\s+above\.?\s*\n+(.*?)(?:\n|3[ab]?\s)",
@@ -227,55 +240,23 @@ def _extract_business_name(lines: list, text: str) -> str:
             return c
     return ""
 
+def _detect_classification(text: str, name: str = "") -> str:
+    name = (name or "").lower()
 
-def _detect_classification(text: str) -> str:
-    """
-    Detect which checkbox is ticked on line 3a.
+    # LLC
+    if "llc" in name:
+        return "LLC"
 
-    OCR renders a checkmark (✓) as various characters depending on the scan quality:
-      Real checkmark chars : ✓ ✗ ☑ ■ ● ✔
-      Tesseract misreads   : X x v [x] [v]
-      Scanned form artefact: OCR sees the filled box as "im" or "wm" directly
-                             before the label text on the same line.
+    # Corporations
+    if any(x in name for x in ["inc", "corp", "corporation"]):
+        return "C Corporation"
 
-    The line-3a row in a scanned W-9 looks like:
-      "Oo individual/sole proprietor  im C corporation  Oo S corporation ..."
-    where "Oo" = empty box, "im" = checked box artefact.
+    # Partnership
+    if any(x in name for x in ["llp", "partnership"]):
+        return "Partnership"
 
-    Strategy: extract just the line-3a checkbox row, then test each label in
-    priority order for the presence of a check token immediately before it.
-    """
-    check_tok = r"(?:✓|✗|☑|■|●|✔|\bim\b|\bwm\b|\[x\]|\[v\]|(?<![a-z])x(?![a-z])|(?<![a-z])v(?![a-z]))"
-
-    # Find the checkbox row (line with "individual" and "corporation" on same line)
-    checkbox_line = ""
-    for line in text.splitlines():
-        if re.search(r"individual.*corporation|corporation.*individual", line, re.IGNORECASE):
-            checkbox_line = line
-            break
-
-    # Also grab the Other/LLC lines for those classifications
-    other_lines = ""
-    for line in text.splitlines():
-        if re.search(r"Other\s*\(see|^.*\bLLC\b.*tax class", line, re.IGNORECASE):
-            other_lines += " " + line
-
-    classifications = [
-        ("C Corporation",              r"C\s+corporation",           checkbox_line),
-        ("S Corporation",              r"S\s+corporation",           checkbox_line),
-        ("Partnership",                r"\bPartnership\b",          checkbox_line),
-        ("Trust/Estate",               r"Trust.*?estate",             checkbox_line),
-        ("Individual/Sole Proprietor", r"Individual.*?proprietor",    checkbox_line),
-        ("LLC",                        r"\bLLC\b",                  other_lines + checkbox_line),
-        ("Other",                      r"Other\s*\(see",            other_lines),
-    ]
-    for label, pattern, search_text in classifications:
-        if not search_text:
-            continue
-        combined = rf"{check_tok}\s{{0,12}}{pattern}|{pattern}\s{{0,12}}{check_tok}"
-        if re.search(combined, search_text, re.IGNORECASE):
-            return label
-    return ""
+    # Default fallback
+    return "Individual/Sole Proprietor"
 
 
 def _extract_ssn(text: str) -> str:
@@ -457,21 +438,56 @@ def extract_text_based(pdf_path: str) -> dict:
 def extract_w9(pdf_path: str) -> dict:
     record = {col: "" for col in OUTPUT_COLUMNS}
     record["source_file"] = Path(pdf_path).name
-    logger.info(f"Processing: {Path(pdf_path).name}")
+
+    logger.info(f"Processing: {record['source_file']}")
+
     try:
         if has_acroform_fields(pdf_path):
+            method = "AcroForm"
             data = extract_acroform(pdf_path)
+
         elif is_pdf_scanned(pdf_path):
+            method = "OCR"
             data = extract_scanned_ocr(pdf_path)
+
         else:
+            method = "TextPDF"
             data = extract_text_based(pdf_path)
-        record.update(data)
-        record["source_file"] = Path(pdf_path).name
+
+        for k, v in data.items():
+            if v: 
+                record[k] = v
+
+        record["extraction_method"] = data.get("extraction_method", method)
+        record["extraction_status"] = "SUCCESS"
+
     except Exception as e:
         logger.error(f"Failed: {e}")
         record["extraction_notes"] = str(e)
         record["extraction_method"] = "FAILED"
+        record["extraction_status"] = "FAILED"
+
+    if not any([
+        record.get("name"),
+        record.get("ssn"),
+        record.get("ein")
+    ]):
+        record["extraction_notes"] = (record.get("extraction_notes", "") + " | EMPTY_RECORD").strip()
+        if record["extraction_status"] != "FAILED":
+            record["extraction_status"] = "EMPTY"
+
+    logger.info(
+        f"{record['source_file']} | "
+        f"method={record.get('extraction_method')} | "
+        f"status={record.get('extraction_status')} | "
+        f"name={record.get('name')} | "
+        f"ssn={record.get('ssn')} | "
+        f"ein={record.get('ein')}"
+    )
+
     return record
+
+
 
 
 def save_to_excel(records: list, output_path: str) -> str:

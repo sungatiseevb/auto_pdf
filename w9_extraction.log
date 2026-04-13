@@ -2,3 +2,166 @@
 2026-04-13 18:37:22,073 [INFO] Processing: w9 Form 1 3-17-2026.pdf
 2026-04-13 18:37:22,255 [INFO] Processing: w9 Form 3 3-17-2026.pdf
 2026-04-13 18:37:22,399 [INFO] Saved 2 records to w9-extractor.xlsx
+2026-04-13 18:49:02,049 [INFO] Processing: Document_2026-03-28_195103.pdf
+2026-04-13 18:49:29,085 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 18:49:54,048 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 18:49:54,171 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 18:49:54,318 [INFO] Saved 4 records to w9-extractor.xlsx
+2026-04-13 18:59:16,291 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 18:59:38,310 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 19:03:31,951 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 19:03:54,894 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 19:06:11,441 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 19:06:33,570 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 19:07:40,129 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 19:08:02,222 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 19:13:33,986 [WARNING] No PDFs in: input_pdfs
+2026-04-13 19:14:03,872 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 19:14:26,051 [INFO] Saved 1 records to w9-extractor.xlsx
+2026-04-13 19:18:38,207 [INFO] Processing: Document_2026-03-28_195103.pdf
+2026-04-13 19:19:02,121 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 19:19:25,796 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 19:19:25,902 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 19:19:26,107 [INFO] Saved 4 records to w9-extractor.xlsx
+2026-04-13 19:57:05,913 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 19:57:32,021 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 19:57:55,623 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 19:58:21,939 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 19:58:51,201 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 19:58:51,318 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 19:58:51,462 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 20:02:30,375 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 20:02:57,592 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 20:03:21,455 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 20:03:47,538 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 20:04:16,689 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 20:04:16,824 [ERROR] Failed: cannot use a string pattern on a bytes-like object
+2026-04-13 20:04:16,825 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 20:04:16,968 [ERROR] Failed: cannot use a string pattern on a bytes-like object
+2026-04-13 20:04:17,014 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 20:08:14,192 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 20:08:28,430 [ERROR] OCR failed: name '_detect_classification' is not defined
+2026-04-13 20:08:28,433 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 20:08:42,066 [ERROR] OCR failed: name '_detect_classification' is not defined
+2026-04-13 20:08:42,068 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 20:08:55,893 [ERROR] OCR failed: name '_detect_classification' is not defined
+2026-04-13 20:08:55,896 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 20:09:15,820 [ERROR] OCR failed: name '_detect_classification' is not defined
+2026-04-13 20:09:15,827 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 20:09:15,939 [ERROR] Failed: cannot use a string pattern on a bytes-like object
+2026-04-13 20:09:15,940 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 20:09:16,062 [ERROR] Failed: cannot use a string pattern on a bytes-like object
+2026-04-13 20:09:16,102 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 20:12:08,948 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 20:12:23,804 [ERROR] OCR failed: name '_detect_classification' is not defined
+2026-04-13 20:12:23,807 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 20:12:37,526 [ERROR] OCR failed: name '_detect_classification' is not defined
+2026-04-13 20:12:37,528 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 20:12:51,974 [ERROR] OCR failed: name '_detect_classification' is not defined
+2026-04-13 20:12:51,977 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 20:13:12,025 [ERROR] OCR failed: name '_detect_classification' is not defined
+2026-04-13 20:13:12,034 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 20:13:12,150 [ERROR] Failed: cannot use a string pattern on a bytes-like object
+2026-04-13 20:13:12,151 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 20:13:12,268 [ERROR] Failed: cannot use a string pattern on a bytes-like object
+2026-04-13 20:13:12,306 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 20:15:42,405 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 20:16:08,735 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 20:16:32,700 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 20:16:58,867 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 20:17:28,140 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 20:17:28,256 [ERROR] Failed: cannot use a string pattern on a bytes-like object
+2026-04-13 20:17:28,257 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 20:17:28,380 [ERROR] Failed: cannot use a string pattern on a bytes-like object
+2026-04-13 20:17:28,416 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 20:21:35,509 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 20:22:01,731 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 20:22:25,805 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 20:22:51,963 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 20:23:21,873 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 20:23:21,993 [ERROR] Failed: cannot use a string pattern on a bytes-like object
+2026-04-13 20:23:21,994 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 20:23:22,108 [ERROR] Failed: cannot use a string pattern on a bytes-like object
+2026-04-13 20:23:22,138 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 20:43:03,331 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 20:43:29,460 [INFO] Document_2026-04-07_095423.pdf | method=OCR | status=SUCCESS | name=Palitree Inc LLC | ssn= | ein=
+2026-04-13 20:43:29,463 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 20:43:53,073 [INFO] Document_2026-04-07_100045.pdf | method=OCR | status=SUCCESS | name=Samuel Jines INC | ssn= | ein=
+2026-04-13 20:43:53,075 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 20:44:19,313 [INFO] Ralpha THat LLC_Testpdf1.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 20:44:19,315 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 20:44:48,498 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 20:44:48,501 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 20:44:48,758 [INFO] w9 Form 1 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=Lateell Parctor Inc | ssn=143-33-7875 | ein=45-3445678
+2026-04-13 20:44:48,759 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 20:44:48,923 [INFO] w9 Form 3 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=john Phat Inc | ssn= | ein=10-3445678
+2026-04-13 20:44:48,954 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 20:52:39,714 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 20:53:06,782 [INFO] Document_2026-04-07_095423.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 20:53:06,785 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 20:53:31,338 [INFO] Document_2026-04-07_100045.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 20:53:31,341 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 20:53:58,430 [INFO] Ralpha THat LLC_Testpdf1.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 20:53:58,433 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 20:54:29,259 [INFO] Testpdffinal.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 20:54:29,261 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 20:54:29,435 [INFO] w9 Form 1 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=Lateell Parctor Inc | ssn=143-33-7875 | ein=45-3445678
+2026-04-13 20:54:29,436 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 20:54:29,556 [INFO] w9 Form 3 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=john Phat Inc | ssn= | ein=10-3445678
+2026-04-13 20:54:29,595 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 20:56:37,416 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 20:57:03,304 [INFO] Document_2026-04-07_095423.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 20:57:03,307 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 20:57:26,845 [INFO] Document_2026-04-07_100045.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 20:57:26,848 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 20:57:52,966 [INFO] Ralpha THat LLC_Testpdf1.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 20:57:52,969 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 20:58:22,246 [INFO] Testpdffinal.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 20:58:22,248 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 20:58:22,366 [INFO] w9 Form 1 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=Lateell Parctor Inc | ssn=143-33-7875 | ein=45-3445678
+2026-04-13 20:58:22,367 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 20:58:22,485 [INFO] w9 Form 3 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=john Phat Inc | ssn= | ein=10-3445678
+2026-04-13 20:58:22,522 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 21:00:57,053 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 21:01:23,564 [INFO] Document_2026-04-07_095423.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 21:01:23,566 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 21:01:47,162 [INFO] Document_2026-04-07_100045.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 21:01:47,165 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 21:02:13,122 [INFO] Ralpha THat LLC_Testpdf1.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 21:02:13,127 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:02:42,253 [INFO] Testpdffinal.pdf | method=OCR | status=EMPTY | name= | ssn= | ein=
+2026-04-13 21:02:42,255 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 21:02:42,380 [INFO] w9 Form 1 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=Lateell Parctor Inc | ssn=143-33-7875 | ein=45-3445678
+2026-04-13 21:02:42,382 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 21:02:42,506 [INFO] w9 Form 3 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=john Phat Inc | ssn= | ein=10-3445678
+2026-04-13 21:02:42,538 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 21:04:57,852 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 21:05:12,208 [ERROR] OCR failed: _extract_name() missing 1 required positional argument: 'text'
+2026-04-13 21:05:12,209 [INFO] Document_2026-04-07_095423.pdf | method=OCR_FAILED | status=EMPTY | name= | ssn= | ein=
+2026-04-13 21:05:12,211 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 21:05:25,832 [ERROR] OCR failed: _extract_name() missing 1 required positional argument: 'text'
+2026-04-13 21:05:25,832 [INFO] Document_2026-04-07_100045.pdf | method=OCR_FAILED | status=EMPTY | name= | ssn= | ein=
+2026-04-13 21:05:25,834 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 21:05:40,018 [ERROR] OCR failed: _extract_name() missing 1 required positional argument: 'text'
+2026-04-13 21:05:40,018 [INFO] Ralpha THat LLC_Testpdf1.pdf | method=OCR_FAILED | status=EMPTY | name= | ssn= | ein=
+2026-04-13 21:05:40,021 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:05:59,062 [ERROR] OCR failed: _extract_name() missing 1 required positional argument: 'text'
+2026-04-13 21:05:59,066 [INFO] Testpdffinal.pdf | method=OCR_FAILED | status=EMPTY | name= | ssn= | ein=
+2026-04-13 21:05:59,068 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 21:05:59,198 [INFO] w9 Form 1 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=Lateell Parctor Inc | ssn=143-33-7875 | ein=45-3445678
+2026-04-13 21:05:59,198 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 21:05:59,315 [INFO] w9 Form 3 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=john Phat Inc | ssn= | ein=10-3445678
+2026-04-13 21:05:59,346 [INFO] Saved 6 records to w9-extractor.xlsx
+2026-04-13 21:07:18,743 [INFO] Processing: Document_2026-04-07_095423.pdf
+2026-04-13 21:07:45,443 [INFO] Document_2026-04-07_095423.pdf | method=OCR | status=SUCCESS | name=Palitree Inc LLC | ssn= | ein=
+2026-04-13 21:07:45,445 [INFO] Processing: Document_2026-04-07_100045.pdf
+2026-04-13 21:08:08,558 [INFO] Document_2026-04-07_100045.pdf | method=OCR | status=SUCCESS | name=Samuel Jines INC | ssn= | ein=
+2026-04-13 21:08:08,561 [INFO] Processing: Ralpha THat LLC_Testpdf1.pdf
+2026-04-13 21:08:34,059 [INFO] Ralpha THat LLC_Testpdf1.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:08:34,061 [INFO] Processing: Testpdffinal.pdf
+2026-04-13 21:09:02,564 [INFO] Testpdffinal.pdf | method=OCR | status=SUCCESS | name=Ralpha THat LLC | ssn= | ein=
+2026-04-13 21:09:02,566 [INFO] Processing: w9 Form 1 3-17-2026.pdf
+2026-04-13 21:09:02,688 [INFO] w9 Form 1 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=Lateell Parctor Inc | ssn=143-33-7875 | ein=45-3445678
+2026-04-13 21:09:02,689 [INFO] Processing: w9 Form 3 3-17-2026.pdf
+2026-04-13 21:09:02,817 [INFO] w9 Form 3 3-17-2026.pdf | method=AcroForm | status=SUCCESS | name=john Phat Inc | ssn= | ein=10-3445678
+2026-04-13 21:09:02,847 [INFO] Saved 6 records to w9-extractor.xlsx
