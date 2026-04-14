@@ -7,6 +7,7 @@ Key fixes:
 4. Always uses openpyxl (no xlwings issues)
 """
 
+import hashlib
 import re
 import os
 import shutil
@@ -81,88 +82,57 @@ def clean_text(value) -> str:
     text = re.sub(r'[_{}\[\]|]', ' ', text) 
     return unicodedata.normalize("NFKC", text.strip())
 
-def is_pdf_scanned(pdf_path: str) -> bool:
+
+def _file_md5(file_path: str) -> str:
+    hash_md5 = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
+
+def is_pdf_scanned(pdf_path: str, pdf=None) -> bool:
     try:
-        with pdfplumber.open(pdf_path) as pdf:
+        if pdf is not None:
             text = pdf.pages[0].extract_text() or ""
-            return len(text.replace(" ", "").replace("\n", "")) < 50
+        else:
+            with pdfplumber.open(pdf_path) as pdf_obj:
+                text = pdf_obj.pages[0].extract_text() or ""
+        return len(text.replace(" ", "").replace("\n", "")) < 50
     except Exception:
         return True
 
 
-def has_acroform_fields(pdf_path: str) -> bool:
+def _pdf_has_acroform_fields(pdf) -> bool:
     try:
-        with pdfplumber.open(pdf_path) as pdf:
-            for page in pdf.pages:
-                for annot in page.annots:
-                    data = annot.get("data", {})
-                    if "Tx" in str(data.get("FT", "")) and data.get("V"):
-                        return True
+        for page in pdf.pages:
+            for annot in page.annots:
+                data = annot.get("data", {})
+                if "Tx" in str(data.get("FT", "")) and data.get("V"):
+                    return True
+                if "Btn" in str(data.get("FT", "")) and data.get("AS"):
+                    return True
         return False
     except Exception:
         return False
-
-
-def extract_acroform(pdf_path: str) -> dict:
-    record = {col: "" for col in OUTPUT_COLUMNS}
-    raw_fields = {}
-    checkbox_states = {}
-
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            for annot in page.annots:
-                title = annot.get("title", "") or ""
-                data = annot.get("data", {})
-                ft = str(data.get("FT", ""))
-                v = data.get("V")
-                ap_state = data.get("AS")
-
-                if "Tx" in ft and v:
-                    base = re.sub(r"\[\d+\]$", "", title)
-                    raw_fields[base] = clean_text(v)
-                elif "Btn" in ft and ap_state:
-                    m = re.search(r"\[(\d+)\]", title)
-                    if m:
-                        idx = int(m.group(1))
-                        checkbox_states[idx] = str(ap_state) not in ("/'Off'", "/Off", "Off")
-
-    for field_key, col_name in FIELD_MAP.items():
-        if field_key in raw_fields:
-            record[col_name] = raw_fields[field_key]
-
-    checked = [i for i, v in checkbox_states.items() if v]
-    if checked:
-        label = CHECKBOX_LABELS.get(checked[0], f"Unknown ({checked[0]})")
-        if label == "LLC" and record.get("llc_classification"):
-            llc_type = record["llc_classification"].upper()
-            label = {"C": "LLC (C Corporation)", "S": "LLC (S Corporation)", "P": "LLC (Partnership)"}.get(llc_type, f"LLC ({llc_type})")
-        record["tax_classification"] = label
-
-    ssn = [raw_fields.get(k, "") for k in ["f1_11", "f1_12", "f1_13"]]
-    if any(ssn):
-        record["ssn"] = "-".join(p for p in ssn if p)
-
-    ein = [raw_fields.get(k, "") for k in ["f1_14", "f1_15"]]
-    if any(ein):
-        record["ein"] = "-".join(p for p in ein if p)
-
-    record["extraction_method"] = "AcroForm"
-    return record
 
 
 def _parse_w9_text(text: str, pdf_path: str) -> dict:
     record = {col: "" for col in OUTPUT_COLUMNS}
     record["source_file"] = Path(pdf_path).name
     lines = [l.strip() for l in text.splitlines() if l.strip()]
+    logger.debug("Parsed OCR/text lines:")
+    for i, line in enumerate(lines):
+        logger.debug(f"  {i}: {repr(line)}")
 
     # Name: line immediately after the "Name of entity" header line
     record["name"] = _extract_name(lines)
     record["business_name"] = _extract_business_name(lines, text)
-    record["tax_classification"] = _detect_classification(text, record["name"])
+    record["tax_classification"] = _detect_classification(text, record["name"], lines)
     record["address"] = _extract_after_label(lines, r"^5\s+Address|Address\s*\(number")
     record["city_state_zip"] = _extract_after_label(lines, r"^6\s+City|City,\s*state")
     record["ssn"] = _extract_ssn(text)
-    record["ein"] = _extract_ein(text)
+    record["ein"] = _extract_ein(text, ssn=record["ssn"])
     record["date"] = _extract_date(text, lines)
     return record
 
@@ -191,24 +161,23 @@ def _extract_name(lines: list) -> str:
 def _extract_after_label(lines: list, pattern: str) -> str:
     skip = [
         r"^(An entry|For a sole|Check the|Enter your|See instructions|Note:|If different|Business name|disregarded)",
-        r"^\d+\s+[A-Z]",
     ]
+    alt_pattern = pattern
+    if "^6" in pattern:
+        alt_pattern = r"^6\s+(?:City|Clty|Cty)|(?:City|Clty|Cty),\s*state"
     for i, line in enumerate(lines):
-        if re.search(pattern, line, re.IGNORECASE):
+        if re.search(alt_pattern, line, re.IGNORECASE):
+            logger.debug(f"Found pattern '{pattern}' in line {i}: {repr(line)}")
             for j in range(i + 1, min(i + 6, len(lines))):
                 c = lines[j]
+                logger.debug(f"Checking line {j}: {repr(c)}")
                 if not any(re.match(p, c, re.IGNORECASE) for p in skip) and len(c) > 2:
                     if not re.search(pattern, c, re.IGNORECASE):
+                        logger.debug(f"Returning {repr(c)}")
                         return c
+    logger.debug(f"No match for pattern '{pattern}'")
     return ""
 
-
-# def clean_text(text: str) -> str:
-#     if not text:
-#         return ""
-#     # Remove OCR noise like |, {, [, ], _, or dots at the start/end
-#     cleaned = re.sub(r'^[^a-zA-Z0-9]+', '', text)
-#     return cleaned.strip()
 
 def _clean_name_noise(text: str) -> str:
     """Очищает строку от типичного мусора OCR, сохраняя валидный текст."""
@@ -221,6 +190,75 @@ def _clean_name_noise(text: str) -> str:
     # Удаляем не-буквенно-цифровые символы в самом начале и конце строки
     cleaned = re.sub(r'^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$', '', cleaned)
     return cleaned.strip()
+
+def _detect_classification_in_lines(lines: list) -> str:
+    checkbox_marker = r'(?:[xX*]|☒|☑|\[[xX* ]\]|\(\s*[xX*]\s*\))'
+    candidates = [
+        ("Individual/Sole Proprietor", r'Individual/?sole proprietor'),
+        ("C Corporation", r'C\s*Corporat\w*|C\s*Corp\.?'),
+        ("S Corporation", r'S\s*Corporat\w*|S\s*Corp\.?'),
+        ("Partnership", r'Partnership'),
+        ("Trust/Estate", r'Trust/?Estate'),
+        ("Other", r'Other'),
+        ("LLC", r'LLC'),
+    ]
+
+    for line in lines:
+        for label, pattern in candidates:
+            if re.search(pattern, line, re.IGNORECASE) and re.search(checkbox_marker, line):
+                return label
+
+    for i, line in enumerate(lines):
+        if re.search(checkbox_marker, line):
+            for j in range(i, min(i + 3, len(lines))):
+                for label, pattern in candidates:
+                    if re.search(pattern, lines[j], re.IGNORECASE):
+                        return label
+    return ""
+
+
+def _detect_classification(text: str, name: str = "", lines: list = None) -> str:
+    if lines is None:
+        lines = [l.strip() for l in text.splitlines() if l.strip()]
+
+    classification = _detect_classification_in_lines(lines)
+    if classification:
+        return classification
+
+    text_lower = (text or "").lower()
+    name_lower = (name or "").lower()
+    has_form_template = bool(re.search(r'check the appropriate box|line\s*3a|\b3a\b', text_lower, re.IGNORECASE))
+
+    if not has_form_template:
+        if re.search(r'\bc\s*(corporat\w*|corp|corp\.)\b', text_lower):
+            return "C Corporation"
+        if re.search(r'\bs\s*(corporat\w*|corp|corp\.)\b', text_lower):
+            return "S Corporation"
+        if re.search(r'\bpartnership\b', text_lower):
+            return "Partnership"
+        if re.search(r'\btrust/?estate\b', text_lower):
+            return "Trust/Estate"
+        if re.search(r'\bother\b', text_lower):
+            return "Other"
+        if re.search(r'\bindividual/sole proprietor\b|\bsole proprietor\b|\bindividual\b', text_lower):
+            return "Individual/Sole Proprietor"
+        if re.search(r'\bllc\b', text_lower):
+            if re.search(r'\bc\s*(corporation|orp|orp\.)\b', text_lower):
+                return "C Corporation"
+            if re.search(r'\bs\s*(corporation|orp|orp\.)\b', text_lower):
+                return "S Corporation"
+            if re.search(r'\bpartnership\b', text_lower):
+                return "Partnership"
+            return "LLC"
+
+    if any(x in name_lower for x in ["inc", "corp", "corporation"]):
+        return "C Corporation"
+    if any(x in name_lower for x in ["llp", "partnership"]):
+        return "Partnership"
+    if "llc" in name_lower:
+        return "LLC"
+
+    return "Individual/Sole Proprietor"
 
 def _extract_business_name(lines: list, text: str) -> str:
     for i, line in enumerate(lines):
@@ -240,105 +278,192 @@ def _extract_business_name(lines: list, text: str) -> str:
                 if j < len(lines):
                     candidate = clean_text(lines[j])
                     candidate = _clean_name_noise(candidate) # Применяем очистку
-                    # Ensure it's not the start of Line 3
-                    if candidate and not re.search(r"^(3a|Check|3b)", candidate, re.IGNORECASE):
+                    # Ensure it's not the start of Line 3 or another section header
+                    if candidate and not re.search(r"^(3a|Check|3b|Individual/sole proprietor|LLC|Other|Trust/Estate|C\s*Corporation|S\s*Corporation|Partnership)", candidate, re.IGNORECASE):
                         if len(candidate) > 2:
                             return candidate
     return ""
 
-def _detect_classification(text: str, name: str = "") -> str:
-    text = (text or "").lower()
-    name = (name or "").lower()
+def _ocr_digits_from_crop(crop):
+    try:
+        import cv2
+        import pytesseract
+    except ImportError:
+        return ""
 
-    # Explicit classification labels found on the form are highest priority.
-    if re.search(r'\bc\s*(corporat\w*|corp|corp\.)\b', text):
-        return "C Corporation"
-    if re.search(r'\bs\s*(corporat\w*|corp|corp\.)\b', text):
-        return "S Corporation"
-    if re.search(r'\bpartnership\b', text):
-        return "Partnership"
-    if re.search(r'\btrust/?estate\b', text):
-        return "Trust/Estate"
-    if re.search(r'\bother\b', text):
-        return "Other"
-    if re.search(r'\bindividual/sole proprietor\b|\bsole proprietor\b|\bindividual\b', text):
-        return "Individual/Sole Proprietor"
-    if re.search(r'\bllc\b', text):
-        # If the form also contains a more specific corporate selection, honor that instead.
-        if re.search(r'\bc\s*(corporation|orp|orp\.)\b', text):
-            return "C Corporation"
-        if re.search(r'\bs\s*(corporation|orp|orp\.)\b', text):
-            return "S Corporation"
-        if re.search(r'\bpartnership\b', text):
-            return "Partnership"
-        return "LLC"
+    gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY)
+    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    inv = cv2.bitwise_not(thresh)
+    proc = cv2.resize(inv, (inv.shape[1] * 2, inv.shape[0] * 2), interpolation=cv2.INTER_CUBIC)
+    candidates = []
 
-    if any(x in name for x in ["inc", "corp", "corporation"]):
-        return "C Corporation"
-    if any(x in name for x in ["llp", "partnership"]):
-        return "Partnership"
-    if "llc" in name:
-        return "LLC"
+    configs = [
+        '--oem 3 --psm 6 -c tessedit_char_whitelist="0123456789- "',
+        '--oem 3 --psm 7 -c tessedit_char_whitelist="0123456789- "',
+        '--oem 3 --psm 11 -c tessedit_char_whitelist="0123456789- "',
+    ]
 
-    return "Individual/Sole Proprietor"
+    for cfg in configs:
+        text = pytesseract.image_to_string(proc, config=cfg)
+        digits = ''.join(re.findall(r'\d', text))
+        if digits:
+            candidates.append((len(digits), digits, text, cfg))
+
+    if candidates:
+        candidates.sort(key=lambda x: (-x[0], x[1]))
+        best_digits = candidates[0][1]
+        logger.debug(f"OCR digits candidates: {[(c[0], c[1], c[3]) for c in candidates]}")
+        return best_digits
+    return ""
+
+
+
+
+def _extract_ssn_from_pdf_coordinates(page) -> str:
+    """Extract SSN by searching extracted words in TIN region using pdfplumber.
+    
+    Searches right half of page (x >= 50%), middle-lower region (y 35%-55%)
+    for digit sequences matching SSN pattern. Avoids OCR on handwritten digits.
+    """
+    try:
+        words = page.extract_words(x_tolerance=3, y_tolerance=3)
+        if not words:
+            return ""
+        
+        page_width = page.width
+        page_height = page.height
+        x_threshold = page_width * 0.50
+        y_min = page_height * 0.35
+        y_max = page_height * 0.55
+        
+        # Collect all text in target region
+        region_text = []
+        for word in words:
+            x0 = word.get("x0", 0)
+            top = word.get("top", 0)
+            text = word.get("text", "")
+            
+            if x0 >= x_threshold and y_min <= top <= y_max:
+                region_text.append(text)
+        
+        combined = " ".join(region_text)
+        logger.debug(f"TIN region text via pdfplumber: {repr(combined)}")
+        
+        # Look for patterns
+        m = re.search(r'\b(\d{3})\s*[-.\s]\s*(\d{2})\s*[-.\s]\s*(\d{4})\b', combined)
+        if m:
+            result = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+            logger.info(f"SSN found via pdfplumber coordinates: {result}")
+            return result
+        
+        # Try 9 consecutive digits
+        for m in re.finditer(r'\b(\d{3})[\s\-]*(\d{2})[\s\-]*(\d{4})\b', combined):
+            area = m.group(1)
+            if area not in ['000', '666'] and not (900 <= int(area) <= 999):
+                result = f"{area}-{m.group(2)}-{m.group(3)}"
+                logger.info(f"SSN found via pdfplumber (block): {result}")
+                return result
+    except Exception as e:
+        logger.debug(f"pdfplumber SSN extraction failed: {e}")
+    
+    return ""
+
+
+def _extract_ein_from_pdf_coordinates(page) -> str:
+    """Extract EIN by searching extracted words in TIN region using pdfplumber.
+    
+    Searches right half of page (x >= 50%), lower region (y 50%-70%)
+    for digit sequences matching EIN pattern. Avoids OCR on handwritten digits.
+    """
+    try:
+        words = page.extract_words(x_tolerance=3, y_tolerance=3)
+        if not words:
+            return ""
+        
+        page_width = page.width
+        page_height = page.height
+        x_threshold = page_width * 0.50
+        y_min = page_height * 0.50
+        y_max = page_height * 0.70
+        
+        # Collect all text in target region
+        region_text = []
+        for word in words:
+            x0 = word.get("x0", 0)
+            top = word.get("top", 0)
+            text = word.get("text", "")
+            
+            if x0 >= x_threshold and y_min <= top <= y_max:
+                region_text.append(text)
+        
+        combined = " ".join(region_text)
+        logger.debug(f"EIN region text via pdfplumber: {repr(combined)}")
+        
+        # Look for patterns
+        m = re.search(r'\b(\d{2})\s*[-.\s]\s*(\d{7})\b', combined)
+        if m:
+            result = f"{m.group(1)}-{m.group(2)}"
+            logger.info(f"EIN found via pdfplumber coordinates: {result}")
+            return result
+        
+        # Try 9 consecutive digits
+        for m in re.finditer(r'\b(\d{2})[\s\-]*(\d{7})\b', combined):
+            result = f"{m.group(1)}-{m.group(2)}"
+            logger.info(f"EIN found via pdfplumber (block): {result}")
+            return result
+    except Exception as e:
+        logger.debug(f"pdfplumber EIN extraction failed: {e}")
+    
+    return ""
 
 
 def _extract_ssn_from_image(img) -> str:
     try:
         import cv2
-        import pytesseract
         import numpy as np
     except ImportError:
         return ""
 
     h, w = img.shape[:2]
     candidate_regions = [
-        (int(w * 0.60), int(h * 0.42), min(w, int(w * 0.98)), int(h * 0.52)),
-        (int(w * 0.62), int(h * 0.40), min(w, int(w * 0.98)), int(h * 0.55)),
-        (int(w * 0.58), int(h * 0.38), min(w, int(w * 0.98)), int(h * 0.56)),
+        (int(w * 0.45), int(h * 0.42), w, int(h * 0.52)),
+        (int(w * 0.45), int(h * 0.44), w, int(h * 0.54)),
+        (int(w * 0.47), int(h * 0.43), w, int(h * 0.56)),
     ]
 
     for x0, y0, x1, y1 in candidate_regions:
         crop = img[y0:y1, x0:x1]
         if crop.size == 0:
             continue
-        gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY)
-        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        proc = cv2.bitwise_not(thresh)
-        proc = cv2.resize(proc, (proc.shape[1] * 3, proc.shape[0] * 3), interpolation=cv2.INTER_CUBIC)
-        text = pytesseract.image_to_string(proc, config='--oem 3 --psm 6 -c tessedit_char_whitelist="0123456789- "')
-        match = re.search(r'(\d{3})\D*(\d{2})\D*(\d{4})', text)
-        if match:
-            return f"{match.group(1)}-{match.group(2)}-{match.group(3)}"
+        digits = _ocr_digits_from_crop(crop)
+        logger.debug(f"SSN crop digits: {digits} from region {x0},{y0},{x1},{y1}")
+        if len(digits) >= 9:
+            return f"{digits[:3]}-{digits[3:5]}-{digits[5:9]}"
     return ""
 
 
 def _extract_ein_from_image(img) -> str:
     try:
         import cv2
-        import pytesseract
         import numpy as np
     except ImportError:
         return ""
 
     h, w = img.shape[:2]
     candidate_regions = [
-        (int(w * 0.60), int(h * 0.50), min(w, int(w * 0.98)), int(h * 0.60)),
-        (int(w * 0.58), int(h * 0.48), min(w, int(w * 0.98)), int(h * 0.62)),
+        (int(w * 0.45), int(h * 0.52), w, int(h * 0.63)),
+        (int(w * 0.45), int(h * 0.54), w, int(h * 0.66)),
+        (int(w * 0.47), int(h * 0.50), w, int(h * 0.68)),
     ]
 
     for x0, y0, x1, y1 in candidate_regions:
         crop = img[y0:y1, x0:x1]
         if crop.size == 0:
             continue
-        gray = cv2.cvtColor(crop, cv2.COLOR_RGB2GRAY)
-        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        proc = cv2.bitwise_not(thresh)
-        proc = cv2.resize(proc, (proc.shape[1] * 3, proc.shape[0] * 3), interpolation=cv2.INTER_CUBIC)
-        text = pytesseract.image_to_string(proc, config='--oem 3 --psm 6 -c tessedit_char_whitelist="0123456789- "')
-        match = re.search(r'(\d{2})\D*(\d{7})', text)
-        if match:
-            return f"{match.group(1)}-{match.group(2)}"
+        digits = _ocr_digits_from_crop(crop)
+        logger.debug(f"EIN crop digits: {digits} from region {x0},{y0},{x1},{y1}")
+        if len(digits) >= 9:
+            return f"{digits[:2]}-{digits[2:9]}"
     return ""
 
 
@@ -348,10 +473,10 @@ def _extract_ssn(text: str) -> str:
         return ""
     
     # Clean OCR noise but keep structure
-    clean_text = re.sub(r'[_{}\[\]|\\]', ' ', text)
+    cleaned_text = re.sub(r'[_{}\[\]|\\]', ' ', text)
     
     # Pattern 1: Standard format (XXX-XX-XXXX or XXX XX XXXX or with dots)
-    m = re.search(r'\b(\d{3})\s*[-.\s]\s*(\d{2})\s*[-.\s]\s*(\d{4})\b', clean_text)
+    m = re.search(r'\b(\d{3})\s*[-.\s]\s*(\d{2})\s*[-.\s]\s*(\d{4})\b', cleaned_text)
     if m:
         result = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
         logger.info(f"SSN found via Pattern 1: {result}")
@@ -360,7 +485,7 @@ def _extract_ssn(text: str) -> str:
     # Pattern 2: Look for various SSN labels and capture digits after
     m_label = re.search(
         r"social\s+security\s+number[:\s]*([\d\s\-\.\|]{9,40})",
-        clean_text,
+        cleaned_text,
         re.IGNORECASE,
     )
     if m_label:
@@ -371,7 +496,7 @@ def _extract_ssn(text: str) -> str:
             return result
 
     # Pattern 2b: Look for the shorter label 'SSN' as a fallback
-    m_ssn_label = re.search(r"\bSSN\b[:\s]*([\d\s\-\.]{9,30})", clean_text, re.IGNORECASE)
+    m_ssn_label = re.search(r"\bSSN\b[:\s]*([\d\s\-\.]{9,30})", cleaned_text, re.IGNORECASE)
     if m_ssn_label:
         digits = re.sub(r"[^\d]", "", m_ssn_label.group(1))
         if len(digits) >= 9:
@@ -380,7 +505,7 @@ def _extract_ssn(text: str) -> str:
             return result
     
     # Pattern 3: Look for 9 consecutive digits (with minimal separators)
-    for m in re.finditer(r'(\d{3})\s*[-.\s]*(\d{2})\s*[-.\s]*(\d{4})', clean_text):
+    for m in re.finditer(r'(\d{3})\s*[-.\s]*(\d{2})\s*[-.\s]*(\d{4})', cleaned_text):
         area, group, serial = m.group(1), m.group(2), m.group(3)
         # Skip invalid SSNs: area 000, 666, or 900-999
         if area not in ['000', '666'] and not (900 <= int(area) <= 999):
@@ -389,7 +514,7 @@ def _extract_ssn(text: str) -> str:
             return result
     
     # Pattern 4: Fall back to any 9-digit sequence
-    m_fallback = re.search(r'\b(\d{9})\b', clean_text)
+    m_fallback = re.search(r'\b(\d{9})\b', cleaned_text)
     if m_fallback:
         digits = m_fallback.group(1)
         result = f"{digits[:3]}-{digits[3:5]}-{digits[5:9]}"
@@ -397,40 +522,46 @@ def _extract_ssn(text: str) -> str:
         return result
     
     # Log OCR extraction findings for debugging
-    logger.info(f"No SSN found. Text sample: {clean_text[:200]}")
+    logger.info(f"No SSN found. Text sample: {cleaned_text[:200]}")
     
     return ""
 
-def _extract_ein(text: str) -> str:
+def _extract_ein(text: str, ssn: str = "") -> str:
     """Extract EIN in various formats (XX-XXXXXXX, XX XXXXXXX, XXXXXXXXX, etc)."""
     if not text:
         return ""
     
-    # Clean OCR noise but keep structure
-    clean_text = re.sub(r'[_{}\[\]|\\]', ' ', text)
+    cleaned_text = re.sub(r'[_{}\[\]|\\]', ' ', text)
     
-    # Pattern 1: Standard format (XX-XXXXXXX or XX XXXXXXX or with dots)
-    m = re.search(r'\b(\d{2})\s*[-.\s]\s*(\d{7})\b', clean_text)
-    if m:
-        return f"{m.group(1)}-{m.group(2)}"
-    
-    # Pattern 2: Look for "Employer Identification Number" label and capture digits after
-    m_label = re.search(r"Employer\s+Identification\s+Number[:\s]+([\d\s\-\.]{7,20})", clean_text, re.IGNORECASE)
+    # Pattern 1: Look for "Employer Identification Number" label and capture digits after
+    m_label = re.search(r"Employer\s+Identification\s+Number[:\s]+([\d\s\-\.]{7,30})", cleaned_text, re.IGNORECASE)
     if m_label:
         digits = re.sub(r"[^\d]", "", m_label.group(1))
         if len(digits) >= 9:
             return f"{digits[:2]}-{digits[2:9]}"
-    
-    # Pattern 3: Look for 9 consecutive digits
-    for m in re.finditer(r'(\d{2})\s*[-.\s]*(\d{7})', clean_text):
-        return f"{m.group(1)}-{m.group(2)}"
-    
-    # Pattern 4: Fall back to any 9-digit sequence for EIN
-    m_fallback = re.search(r'\b(\d{9})\b', clean_text)
-    if m_fallback:
-        digits = m_fallback.group(1)
-        return f"{digits[:2]}-{digits[2:9]}"
-    
+
+    m_ein_label = re.search(r"\bEIN\b[:\s]*([\d\s\-\.]{7,30})", cleaned_text, re.IGNORECASE)
+    if m_ein_label:
+        digits = re.sub(r"[^\d]", "", m_ein_label.group(1))
+        if len(digits) >= 9:
+            return f"{digits[:2]}-{digits[2:9]}"
+
+    if ssn:
+        # Avoid selecting an SSN value as EIN if SSN has already been found.
+        return ""
+
+    for m in re.finditer(r'\b(\d{2})\s*[-.\s]*(\d{7})\b', cleaned_text):
+        ctx_start, ctx_end = max(0, m.start() - 40), min(len(cleaned_text), m.end() + 40)
+        ctx = cleaned_text[ctx_start:ctx_end]
+        if re.search(r'Employer\s+Identification\s+Number|\bEIN\b|Employer.+Number', ctx, re.IGNORECASE):
+            return f"{m.group(1)}-{m.group(2)}"
+
+    if re.search(r'Employer\s+Identification\s+Number|\bEIN\b', cleaned_text, re.IGNORECASE):
+        m_fallback = re.search(r'\b(\d{9})\b', cleaned_text)
+        if m_fallback:
+            digits = m_fallback.group(1)
+            return f"{digits[:2]}-{digits[2:9]}"
+
     return ""
 
 
@@ -468,7 +599,6 @@ def extract_scanned_ocr(pdf_path: str) -> dict:
         images = convert_from_path(pdf_path, dpi=200, first_page=1, last_page=1)
         img = np.array(images[0])
         IMG_W, IMG_H = images[0].size
-        SCALE = 200 / 72.0
 
         logger.info("OCR processing only first page")
         h_px = img.shape[0]
@@ -476,15 +606,39 @@ def extract_scanned_ocr(pdf_path: str) -> dict:
         full_text = pytesseract.image_to_string(top_img, config="--oem 3 --psm 6")
         record = _parse_w9_text(full_text, pdf_path)
 
+        # Try to extract SSN/EIN via pdfplumber coordinates first (more accurate for scanned forms)
+        try:
+            with pdfplumber.open(pdf_path) as pdf:
+                page = pdf.pages[0]
+                if not record.get("ssn"):
+                    ssn_from_coords = _extract_ssn_from_pdf_coordinates(page)
+                    if ssn_from_coords:
+                        record["ssn"] = ssn_from_coords
+                        logger.debug("SSN found via pdfplumber coordinates")
+                
+                if not record.get("ein"):
+                    ein_from_coords = _extract_ein_from_pdf_coordinates(page)
+                    if ein_from_coords:
+                        record["ein"] = ein_from_coords
+                        logger.debug("EIN found via pdfplumber coordinates")
+        except Exception as e:
+            logger.debug(f"pdfplumber coordinate extraction failed: {e}")
+
         # fill missing OCR-only fields from the image region if the parsed text did not include them
         if not record.get("ssn"):
             ssn_found = _extract_ssn_from_image(img)
             if ssn_found:
                 record["ssn"] = ssn_found
+                logger.debug(f"SSN found from image: {ssn_found}")
+            else:
+                logger.debug("SSN not found from image")
         if not record.get("ein"):
             ein_found = _extract_ein_from_image(img)
             if ein_found:
                 record["ein"] = ein_found
+                logger.debug(f"EIN found from image: {ein_found}")
+            else:
+                logger.debug("EIN not found from image")
 
         # --- Date: crop the signature section at bottom right ---
         # Look in the bottom 20% of the page, right half for date patterns
@@ -492,10 +646,10 @@ def extract_scanned_ocr(pdf_path: str) -> dict:
         if date_strip.size > 0:
             dg = cv2.cvtColor(date_strip, cv2.COLOR_RGB2GRAY)
             _, dp = cv2.threshold(dg, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-            dp = cv2.resize(dp, (dp.shape[1]*4, dp.shape[0]*4), interpolation=cv2.INTER_CUBIC)
+            dp = cv2.resize(dp, (dp.shape[1]*2, dp.shape[0]*2), interpolation=cv2.INTER_CUBIC)
             date_raw = pytesseract.image_to_string(dp, config="--oem 3 --psm 6").strip()
-            import re as _re
-            dm = _re.search(r"(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})", date_raw)
+            logger.debug(f"Date crop OCR text: {repr(date_raw)}")
+            dm = re.search(r"(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})", date_raw)
             if dm:
                 record["date"] = dm.group(1)
 
@@ -523,17 +677,18 @@ def extract_w9(pdf_path: str) -> dict:
     logger.info(f"Processing: {record['source_file']}")
 
     try:
-        if has_acroform_fields(pdf_path):
-            method = "AcroForm"
-            data = extract_acroform(pdf_path)
+        with pdfplumber.open(pdf_path) as pdf:
+            if _pdf_has_acroform_fields(pdf):
+                method = "AcroForm"
+                data = _extract_acroform_from_pdf(pdf)
 
-        elif is_pdf_scanned(pdf_path):
-            method = "OCR"
-            data = extract_scanned_ocr(pdf_path)
+            elif is_pdf_scanned(pdf_path, pdf):
+                method = "OCR"
+                data = extract_scanned_ocr(pdf_path)
 
-        else:
-            method = "TextPDF"
-            data = extract_text_based(pdf_path)
+            else:
+                method = "TextPDF"
+                data = extract_text_based(pdf_path)
 
         for k, v in data.items():
             if v: 
@@ -565,6 +720,18 @@ def extract_w9(pdf_path: str) -> dict:
         f"ssn={record.get('ssn')} | "
         f"ein={record.get('ein')}"
     )
+
+    logger.debug(f"EXTRACTED from {record['source_file']}: ")
+    logger.debug(f"  Name: {record.get('name')}")
+    logger.debug(f"  Business Name: {record.get('business_name')}")
+    logger.debug(f"  Tax Classification: {record.get('tax_classification')}")
+    logger.debug(f"  Address: {record.get('address')}")
+    logger.debug(f"  City/State/ZIP: {record.get('city_state_zip')}")
+    logger.debug(f"  SSN: {record.get('ssn')}")
+    logger.debug(f"  EIN: {record.get('ein')}")
+    logger.debug(f"  Date: {record.get('date')}")
+    logger.debug(f"  Method: {record.get('extraction_method')}")
+    logger.debug(f"  Status: {record.get('extraction_status')}")
 
     return record
 
@@ -636,7 +803,20 @@ def run_pipeline(input_dir="input_pdfs", output_excel="w9-extractor.xlsx",
         Path(processed_dir).mkdir(parents=True, exist_ok=True)
 
     records = []
+    seen_hashes = {}
     for pdf_path in pdf_files:
+        file_hash = _file_md5(pdf_path)
+        if file_hash in seen_hashes:
+            logger.warning(f"Duplicate PDF skipped: {pdf_path} same content as {seen_hashes[file_hash]}")
+            if move_files:
+                duplicate_dest = Path(processed_dir) / f"duplicate_{pdf_path.name}"
+                try:
+                    shutil.move(pdf_path, duplicate_dest)
+                except Exception as e:
+                    logger.warning(f"Duplicate move failed: {e}")
+            continue
+
+        seen_hashes[file_hash] = pdf_path
         record = extract_w9(str(pdf_path))
         records.append(record)
         if move_files:
@@ -644,8 +824,7 @@ def run_pipeline(input_dir="input_pdfs", output_excel="w9-extractor.xlsx",
             safe = re.sub(r'[<>:"/\\|?*]', "_", name)[:80] or "Unknown"
             dest = Path(processed_dir) / f"{safe}_{pdf_path.stem}.pdf"
             try:
-                shutil.copy2(pdf_path, dest)
-                os.remove(pdf_path)
+                shutil.move(pdf_path, dest)
             except Exception as e:
                 logger.warning(f"Move failed: {e}")
 
